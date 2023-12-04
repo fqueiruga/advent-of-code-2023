@@ -2,9 +2,9 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"unicode"
 
 	"github.com/jpillora/puzzler/harness/aoc"
@@ -23,7 +23,9 @@ func main() {
 func run(part2 bool, input string) any {
 	// when you're ready to do part 2, remove this "not implemented" block
 	if part2 {
-		return "not implemented"
+		num, err := sumPart1("./input-part-2.txt")
+		check(err)
+		return num
 	}
 
 	// solve part 1 here
@@ -33,6 +35,8 @@ func run(part2 bool, input string) any {
 	return num
 }
 
+var numsAsLetters = []string{"zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"}
+
 type Line struct {
 	data string
 }
@@ -41,19 +45,29 @@ func (l Line) GetNumber() (int, error) {
 	var first rune = 0
 	var last rune = 0
 
-	for _, r := range l.data {
-		if unicode.IsDigit(r) {
-			if first == 0 {
-				first = r
-			}
-			last = r
+	storeDigit := func(r rune) {
+		if first == 0 {
+			first = r
 		}
+		last = r
+	}
+
+	for i, r := range l.data {
+		if unicode.IsDigit(r) {
+			storeDigit(r)
+			continue
+		}
+
+		for k, literal := range numsAsLetters {
+			if strings.HasPrefix(l.data[i:], literal) {
+				storeDigit([]rune(strconv.Itoa(k))[0])
+				continue
+			}
+		}
+
 	}
 
 	lineNum := string(first) + string(last)
-
-	fmt.Printf("%s - %s\n", l.data, lineNum)
-
 	num, err := strconv.Atoi(lineNum)
 	if err != nil {
 		return 0, err
